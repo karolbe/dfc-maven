@@ -27,7 +27,7 @@ you run the dfc.py like this:
 python3 dfc.py /tmp/dfc-7.2 /tmp/output-dir dfc.jar
 ```
 
-this will create in /tmp.output-dir a complete folder structure compatible with Maven:
+this will create in /tmp/output-dir a complete folder structure compatible with Maven:
 
 ```
 .
