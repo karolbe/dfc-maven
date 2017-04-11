@@ -4,7 +4,7 @@ import sys
 import shutil
 import zipfile
 
-maven_base_package = "com/documentum"
+maven_base_package = "com" + os.path.sep + "documentum"
 
 maven_base_pom_templ = """<?xml version="1.0" encoding="UTF-8"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
@@ -40,7 +40,7 @@ if(args.dfc_version == None and args.dfc_jar == None):
 
 if(args.dfc_version == None and args.dfc_jar != None):
     print("Extracing the DFC version")
-    with zipfile.ZipFile(args.dfc_jar, 'r') as myzip:
+    with zipfile.ZipFile(args.dfc_jars_location + os.path.sep + args.dfc_jar, 'r') as myzip:
         try:
             myzip.extract("DfVersion.properties", ".")
 
@@ -66,29 +66,28 @@ if(args.dfc_jar != None):
     for file in jars:
         dest_path = args.destination + os.path.sep + maven_base_package + os.path.sep + file[:-4] + os.path.sep + args.dfc_version
         dest_file = file[:-4] + "-" + args.dfc_version
+
         try:
             os.makedirs(dest_path)
-            shutil.copyfile(file, dest_path + os.path.sep + dest_file + ".jar")
         except FileExistsError as err:
             print("Output directory already exists: " + str(err))
-            break
+            # break
 
-        pom = maven_base_pom_templ % (maven_base_package.replace('/', '.'), file[:-4], args.dfc_version, '')
+        shutil.copyfile(args.dfc_jars_location + os.path.sep + file, dest_path + os.path.sep + dest_file + ".jar")
+
+        pom = maven_base_pom_templ % (maven_base_package.replace(os.path.sep, '.'), file[:-4], args.dfc_version, '')
         pom_file = open(dest_path + os.path.sep + dest_file + ".pom", 'w+')
         pom_file.write(pom);
         pom_file.close()
 
-        maven_base_poms += maven_single_dep_templ % (maven_base_package.replace('/', '.'), file[:-4], args.dfc_version)
+        maven_base_poms += maven_single_dep_templ % (maven_base_package.replace(os.path.sep, '.'), file[:-4], args.dfc_version)
 
     #update the dfc.pom to include dependencies
 
     dest_pom_path = args.destination + os.path.sep + maven_base_package + os.path.sep + args.dfc_jar[:-4] + os.path.sep + args.dfc_version
     dest_pom_file = args.dfc_jar[:-4] + "-" + args.dfc_version + ".pom"
-    pom = maven_base_pom_templ % (maven_base_package.replace('/', '.'), args.dfc_jar[:-4], args.dfc_version, '<dependencies>%s</dependencies>' % (maven_base_poms))
+    pom = maven_base_pom_templ % (maven_base_package.replace(os.path.sep, '.'), args.dfc_jar[:-4], args.dfc_version, '<dependencies>%s</dependencies>' % (maven_base_poms))
     pom_file = open(dest_pom_path + os.path.sep + dest_pom_file, 'w+')
     pom_file.write(pom);
     pom_file.close()
-
-
-
 
